@@ -10,6 +10,11 @@ type responseWriterWithStatusCode struct {
 	statusCode int
 }
 
+func (r *responseWriterWithStatusCode) WriteHeader(statusCode int) {
+	r.statusCode = statusCode
+	r.ResponseWriter.WriteHeader(statusCode)
+}
+
 // Config the plugin configuration.
 type Config struct {
 	inputCode  int `json:"inputCode,omitempty"`
@@ -42,7 +47,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (a *Limiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	responseWriter := responseWriterWithStatusCode{rw, 200}
-	a.next.ServeHTTP(responseWriter, req)
+	a.next.ServeHTTP(&responseWriter, req)
 
 	if responseWriter.statusCode == a.inputCode {
 		responseWriter.WriteHeader(a.outputCode)
