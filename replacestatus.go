@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 )
 
 type responseWriterWithStatusCode struct {
@@ -58,6 +59,7 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 
 		if responseWriter.statusCode == a.inputCode {
 			responseWriter.WriteHeader(a.outputCode)
+			time.Sleep(10 * time.Second)
 			log.Printf("Status Code %d", responseWriter.statusCode)
 			rw.WriteHeader(responseWriter.statusCode)
 		}
@@ -66,6 +68,5 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 
 func (a *StatusCodeReplacer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	a.replacer().ServeHTTP(rw,req)
-	rw.WriteHeader(202)
 
 }
