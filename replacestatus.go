@@ -35,12 +35,21 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d, outputBody: %s", config.InputCode, config.OutputCode, config.OutputBody)
 
-	return &StatusCodeReplacer{
-		inputCode:  config.InputCode,
-		outputCode: config.OutputCode,
-		outputBody: config.OutputBody,
-		next:       next,
-	}, nil
+	if config.OutputBody != nil {
+		return &StatusCodeReplacer{
+			inputCode:  config.InputCode,
+			outputCode: config.OutputCode,
+			outputBody: config.OutputBody,
+			next:       next,
+		}, nil
+	}else{
+		return &StatusCodeReplacer{
+			inputCode:  config.InputCode,
+			outputCode: config.OutputCode,
+			next:       next,
+		}, nil
+	}
+
 }
 
 func (a *StatusCodeReplacer) replacer() http.Handler {
