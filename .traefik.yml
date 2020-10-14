@@ -1,5 +1,5 @@
 # The name of your plugin as displayed in the Traefik Pilot web UI.
-displayName: limiter-plugin
+displayName: Replace Status Code
 
 # For now, `middleware` is the only type available.
 type: middleware
