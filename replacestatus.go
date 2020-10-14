@@ -49,7 +49,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (a *StatusCodeReplacer) replacer() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		responseWriter := responseWriterWithStatusCode{rw, 200}
+		responseWriter := responseWriterWithStatusCode{rw, 203}
 		log.Print("In Serve HTTP, calling next serve")
 		a.next.ServeHTTP(&responseWriter, req)
 
