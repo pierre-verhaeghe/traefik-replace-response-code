@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"net/http/httptest"
 )
 
 type responseWriterWithStatusCode struct {
@@ -49,7 +50,17 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (a *StatusCodeReplacer) replacer() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.WriteHeader(201)
+		recorder := httptest.NewRecorder()
+		log.Print("In Serve HTTP, calling next serve")
+		a.next.ServeHTTP(recorder, req)
+
+		log.Printf("Status Code %t", recorder.Code == a.inputCode)
+
+		if recorder.Code == a.inputCode {
+			recorder.WriteHeader(a.outputCode)
+		}
+
+		rw = recorder
 	})
 }
 
