@@ -2,7 +2,7 @@ package traefik_replace_response_code
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -18,14 +18,14 @@ func (r *responseWriterWithStatusCode) WriteHeader(statusCode int) {
 
 // Config the plugin configuration.
 type Config struct {
-	inputCode  int `json:"inputCode,omitempty"`
-	outputCode int `json:"outputCode,omitempty"`
+	InputCode  int `json:"inputCode,omitempty"`
+	OutputCode int `json:"outputCode,omitempty"`
 }
 
 func CreateConfig() *Config {
 	return &Config{
-		inputCode:  429,
-		outputCode: 200,
+		InputCode:  429,
+		OutputCode: 200,
 	}
 }
 
@@ -37,9 +37,12 @@ type Limiter struct {
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+
+	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d", config.InputCode, config.OutputCode)
+
 	return &Limiter{
-		inputCode:  config.inputCode,
-		outputCode: config.outputCode,
+		inputCode:  config.InputCode,
+		outputCode: config.OutputCode,
 		next:       next,
 		name:       name,
 	}, nil
@@ -48,10 +51,10 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (a *Limiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	responseWriter := responseWriterWithStatusCode{rw, 200}
-	fmt.Print("In Serve HTTP, calling next serve")
+	log.Print("In Serve HTTP, calling next serve")
 	a.next.ServeHTTP(&responseWriter, req)
 
-	fmt.Sprintf("Status Code %d", responseWriter.statusCode)
+	log.Printf("Status Code %d", responseWriter.statusCode)
 
 	if responseWriter.statusCode == a.inputCode {
 		responseWriter.WriteHeader(a.outputCode)
