@@ -57,13 +57,11 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 		log.Printf("Status Code %t", recorder.Code == a.inputCode)
 
 		if recorder.Code == a.inputCode {
-			recorder.WriteHeader(a.outputCode)
+			rw.WriteHeader(a.outputCode)
+		}else{
+			rw.WriteHeader(recorder.Code)
+
 		}
-
-		log.Printf("Status Code %d", recorder.Code)
-
-
-		rw.WriteHeader(recorder.Code)
 
 		for name, values := range recorder.Header(){
 			rw.Header()[name] = values
