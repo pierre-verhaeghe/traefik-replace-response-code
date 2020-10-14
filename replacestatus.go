@@ -29,7 +29,7 @@ func CreateConfig() *Config {
 	}
 }
 
-type Limiter struct {
+type StatusCodeReplacer struct {
 	next       http.Handler
 	inputCode  int
 	outputCode int
@@ -40,7 +40,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d", config.InputCode, config.OutputCode)
 
-	return &Limiter{
+	return &StatusCodeReplacer{
 		inputCode:  config.InputCode,
 		outputCode: config.OutputCode,
 		next:       next,
@@ -48,17 +48,23 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}, nil
 }
 
-func (a *Limiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (a *StatusCodeReplacer) replace() http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		responseWriter := responseWriterWithStatusCode{rw, 200}
+		log.Print("In Serve HTTP, calling next serve")
+		a.next.ServeHTTP(&responseWriter, req)
 
-	responseWriter := responseWriterWithStatusCode{rw, 200}
-	log.Print("In Serve HTTP, calling next serve")
-	a.next.ServeHTTP(&responseWriter, req)
+		log.Printf("Status Code %t", responseWriter.statusCode == a.inputCode)
 
-	log.Printf("Status Code %t", responseWriter.statusCode == a.inputCode)
+		if responseWriter.statusCode == a.inputCode {
+			responseWriter.WriteHeader(a.outputCode)
+			log.Printf("Status Code %d", responseWriter.statusCode)
 
-	if responseWriter.statusCode == a.inputCode {
-		responseWriter.WriteHeader(a.outputCode)
-		log.Printf("Status Code %d", responseWriter.statusCode)
+		}
+		rw.WriteHeader(responseWriter.statusCode)
+	})
+}
 
-	}
+func (a *StatusCodeReplacer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	a.replace().ServeHTTP(rw,req)
 }
