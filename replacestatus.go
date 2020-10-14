@@ -54,7 +54,7 @@ func (a *Limiter) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Print("In Serve HTTP, calling next serve")
 	a.next.ServeHTTP(&responseWriter, req)
 
-	log.Printf("Status Code %d", responseWriter.statusCode)
+	log.Printf("Status Code %t", responseWriter.statusCode == a.inputCode)
 
 	if responseWriter.statusCode == a.inputCode {
 		responseWriter.WriteHeader(a.outputCode)
