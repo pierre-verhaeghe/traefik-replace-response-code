@@ -60,6 +60,9 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 			recorder.WriteHeader(a.outputCode)
 		}
 
+		log.Printf("Status Code %d", recorder.Code)
+
+
 		rw.WriteHeader(recorder.Code)
 
 		for name, values := range recorder.Header(){
