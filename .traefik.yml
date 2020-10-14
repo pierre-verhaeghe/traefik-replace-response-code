@@ -16,3 +16,4 @@ summary: This plugin is used to translate an http status code to another one.
 testData:
   inputCode: 429
   outputCode: 200
+  removeBody: false
