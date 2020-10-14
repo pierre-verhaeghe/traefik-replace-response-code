@@ -10,9 +10,9 @@ import (
 
 // Config the plugin configuration.
 type Config struct {
-	InputCode  int `json:"inputCode,omitempty"`
-	OutputCode int `json:"outputCode,omitempty"`
-	OutputBody *string `json:"outputBody,omitempty"`
+	InputCode  int    `json:"inputCode,omitempty"`
+	OutputCode int    `json:"outputCode,omitempty"`
+	RemoveBody bool `json:"removeBody,omitempty"`
 
 }
 
@@ -20,7 +20,7 @@ func CreateConfig() *Config {
 	return &Config{
 		InputCode:  429,
 		OutputCode: 202,
-		OutputBody: nil,
+		RemoveBody: false,
 	}
 }
 
@@ -28,27 +28,19 @@ type StatusCodeReplacer struct {
 	next       http.Handler
 	inputCode  int
 	outputCode int
-	outputBody *string
+	removeBody bool
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 
-	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d, outputBody: %s", config.InputCode, config.OutputCode, config.OutputBody)
+	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d, removeBody: %s", config.InputCode, config.OutputCode, config.RemoveBody)
 
-	if config.OutputBody != nil {
-		return &StatusCodeReplacer{
-			inputCode:  config.InputCode,
-			outputCode: config.OutputCode,
-			outputBody: config.OutputBody,
-			next:       next,
-		}, nil
-	}else{
-		return &StatusCodeReplacer{
-			inputCode:  config.InputCode,
-			outputCode: config.OutputCode,
-			next:       next,
-		}, nil
-	}
+	return &StatusCodeReplacer{
+		inputCode:  config.InputCode,
+		outputCode: config.OutputCode,
+		removeBody: config.RemoveBody,
+		next:       next,
+	}, nil
 
 }
 
@@ -58,14 +50,8 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 		recorder := httptest.NewRecorder()
 		a.next.ServeHTTP(recorder, req)
 
-		replaceBody := false
-
 		if recorder.Code == a.inputCode {
 			rw.WriteHeader(a.outputCode)
-			if a.outputBody != nil {
-				replaceBody = true
-			}
-			replaceBody = true
 		}else{
 			rw.WriteHeader(recorder.Code)
 
@@ -75,9 +61,7 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 			rw.Header()[name] = values
 		}
 
-		if replaceBody {
-			_, _ = rw.Write([]byte(*a.outputBody))
-		}else{
+		if !a.removeBody {
 			_, _ = rw.Write(recorder.Body.Bytes())
 		}
 
