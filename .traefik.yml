@@ -5,7 +5,7 @@ displayName: limiter-plugin
 type: middleware
 
 # The import path of your plugin.
-import: github.com/pierre-verhaeghe/traefik-replace-response-code.git
+import: github.com/pierre-verhaeghe/traefik-replace-response-code
 
 # A brief description of what your plugin is doing.
 summary: This plugin is used to translate an http status code to another one.
