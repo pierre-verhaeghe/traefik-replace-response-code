@@ -52,18 +52,19 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 
 		if recorder.Code == a.inputCode {
 			rw.WriteHeader(a.outputCode)
+			if !a.removeBody {
+				_, _ = rw.Write(recorder.Body.Bytes())
+			}
 		}else{
 			rw.WriteHeader(recorder.Code)
-
+			_, _ = rw.Write(recorder.Body.Bytes())
 		}
 
 		for name, values := range recorder.Header(){
 			rw.Header()[name] = values
 		}
 
-		if !a.removeBody {
-			_, _ = rw.Write(recorder.Body.Bytes())
-		}
+
 
 	})
 }
