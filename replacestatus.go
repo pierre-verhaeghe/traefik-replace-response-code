@@ -7,25 +7,20 @@ import (
 	"net/http/httptest"
 )
 
-type responseWriterWithStatusCode struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (r *responseWriterWithStatusCode) WriteHeader(statusCode int) {
-	r.statusCode = statusCode
-}
 
 // Config the plugin configuration.
 type Config struct {
 	InputCode  int `json:"inputCode,omitempty"`
 	OutputCode int `json:"outputCode,omitempty"`
+	OutputBody *string `json:"outputBody,omitempty"`
+
 }
 
 func CreateConfig() *Config {
 	return &Config{
 		InputCode:  429,
 		OutputCode: 202,
+		OutputBody: nil,
 	}
 }
 
@@ -33,31 +28,35 @@ type StatusCodeReplacer struct {
 	next       http.Handler
 	inputCode  int
 	outputCode int
-	name       string
+	outputBody *string
 }
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 
-	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d", config.InputCode, config.OutputCode)
+	log.Printf("Configuring plugin replace-response-code with inputCode: %d, outputCode: %d, outputBody: %s", config.InputCode, config.OutputCode, config.OutputBody)
 
 	return &StatusCodeReplacer{
 		inputCode:  config.InputCode,
 		outputCode: config.OutputCode,
+		outputBody: config.OutputBody,
 		next:       next,
-		name:       name,
 	}, nil
 }
 
 func (a *StatusCodeReplacer) replacer() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		//recorder is used to delegate call. Its response will be used to create the correct ResponseWriter status code.
 		recorder := httptest.NewRecorder()
-		log.Print("In Serve HTTP, calling next serve")
 		a.next.ServeHTTP(recorder, req)
 
-		log.Printf("Status Code %t", recorder.Code == a.inputCode)
+		replaceBody := false
 
 		if recorder.Code == a.inputCode {
 			rw.WriteHeader(a.outputCode)
+			if a.outputBody != nil {
+				replaceBody = true
+			}
+			replaceBody = true
 		}else{
 			rw.WriteHeader(recorder.Code)
 
@@ -66,7 +65,13 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 		for name, values := range recorder.Header(){
 			rw.Header()[name] = values
 		}
-		rw.Write(recorder.Body.Bytes())
+
+		if replaceBody {
+			_, _ = rw.Write([]byte(*a.outputBody))
+		}else{
+			_, _ = rw.Write(recorder.Body.Bytes())
+		}
+
 	})
 }
 
