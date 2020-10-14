@@ -59,12 +59,13 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 		if responseWriter.statusCode == a.inputCode {
 			responseWriter.WriteHeader(a.outputCode)
 			log.Printf("Status Code %d", responseWriter.statusCode)
-
+			rw.WriteHeader(responseWriter.statusCode)
 		}
-		rw.WriteHeader(responseWriter.statusCode)
 	})
 }
 
 func (a *StatusCodeReplacer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	a.replacer().ServeHTTP(rw,req)
+	rw.WriteHeader(202)
+
 }
