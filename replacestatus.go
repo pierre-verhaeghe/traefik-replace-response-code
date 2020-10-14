@@ -48,7 +48,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}, nil
 }
 
-func (a *StatusCodeReplacer) replace() http.Handler {
+func (a *StatusCodeReplacer) replacer() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		responseWriter := responseWriterWithStatusCode{rw, 200}
 		log.Print("In Serve HTTP, calling next serve")
@@ -66,5 +66,5 @@ func (a *StatusCodeReplacer) replace() http.Handler {
 }
 
 func (a *StatusCodeReplacer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	a.replace().ServeHTTP(rw,req)
+	a.replacer().ServeHTTP(rw,req)
 }
