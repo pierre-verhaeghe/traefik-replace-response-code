@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"time"
 )
 
 type responseWriterWithStatusCode struct {
@@ -14,7 +13,6 @@ type responseWriterWithStatusCode struct {
 
 func (r *responseWriterWithStatusCode) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
-	r.ResponseWriter.WriteHeader(statusCode)
 }
 
 // Config the plugin configuration.
@@ -59,7 +57,6 @@ func (a *StatusCodeReplacer) replacer() http.Handler {
 
 		if responseWriter.statusCode == a.inputCode {
 			responseWriter.WriteHeader(a.outputCode)
-			time.Sleep(10 * time.Second)
 			log.Printf("Status Code %d", responseWriter.statusCode)
 			rw.WriteHeader(responseWriter.statusCode)
 		}
