@@ -24,7 +24,7 @@ type Config struct {
 func CreateConfig() *Config {
 	return &Config{
 		InputCode:  429,
-		OutputCode: 200,
+		OutputCode: 202,
 	}
 }
 
@@ -49,17 +49,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (a *StatusCodeReplacer) replacer() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		responseWriter := responseWriterWithStatusCode{rw, 203}
-		log.Print("In Serve HTTP, calling next serve")
-		a.next.ServeHTTP(&responseWriter, req)
-
-		log.Printf("Status Code %t", responseWriter.statusCode == a.inputCode)
-
-		if responseWriter.statusCode == a.inputCode {
-			responseWriter.WriteHeader(a.outputCode)
-			log.Printf("Status Code %d", responseWriter.statusCode)
-			rw.WriteHeader(responseWriter.statusCode)
-		}
+		rw.WriteHeader(201)
 	})
 }
 
