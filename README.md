@@ -16,7 +16,7 @@ Traefik plugin used to replace a http response code. Can be useful for example t
 
 [experimental.plugins.replace]
   modulename = "github.com/pierre-verhaeghe/traefik-replace-response-code"
-  version = "v0.1.0"
+  version = "v0.2.0"
 #
 ```
 removeBody optional flag can be use to remove response body. By default removeBody is set to `false`.
